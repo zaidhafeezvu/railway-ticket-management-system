@@ -76,7 +76,11 @@ const ticketSchema = new mongoose.Schema({
 // Generate PNR before saving
 ticketSchema.pre('save', async function(next) {
   if (!this.pnr) {
-    this.pnr = 'PNR' + Date.now() + Math.floor(Math.random() * 1000);
+    // Generate a more secure PNR using crypto
+    const crypto = require('crypto');
+    const randomPart = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const timestamp = Date.now().toString(36).toUpperCase();
+    this.pnr = 'PNR' + timestamp + randomPart;
   }
   next();
 });

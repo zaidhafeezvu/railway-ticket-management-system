@@ -52,9 +52,11 @@ exports.bookTicket = async (req, res) => {
       price: trainClass.price
     });
 
-    // Update available seats
-    trainClass.availableSeats -= 1;
-    await train.save();
+    // Update available seats using atomic operation to prevent race conditions
+    await Train.updateOne(
+      { _id: trainId, 'classes.type': classType },
+      { $inc: { 'classes.$.availableSeats': -1 } }
+    );
 
     const populatedTicket = await Ticket.findById(ticket._id).populate('train', 'trainNumber trainName');
 
@@ -136,11 +138,11 @@ exports.cancelTicket = async (req, res) => {
     ticket.status = 'cancelled';
     await ticket.save();
 
-    // Restore seat availability
-    const train = await Train.findById(ticket.train);
-    const trainClass = train.classes.find(c => c.type === ticket.classType);
-    trainClass.availableSeats += 1;
-    await train.save();
+    // Restore seat availability using atomic operation to prevent race conditions
+    await Train.updateOne(
+      { _id: ticket.train, 'classes.type': ticket.classType },
+      { $inc: { 'classes.$.availableSeats': 1 } }
+    );
 
     res.json({
       success: true,
