@@ -1,0 +1,32 @@
+{
+  "name": "railway-ticket-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A full-stack MERN railway ticket management system",
+  "workspaces": [
+    "packages/client",
+    "packages/server",
+    "packages/shared"
+  ],
+  "scripts": {
+    "client": "npm run dev --workspace=packages/client",
+    "server": "npm run dev --workspace=packages/server",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "install:all": "npm install && npm install --workspace=packages/client && npm install --workspace=packages/server && npm install --workspace=packages/shared",
+    "build": "npm run build --workspaces",
+    "build:client": "npm run build --workspace=packages/client",
+    "build:server": "npm run build --workspace=packages/server"
+  },
+  "keywords": [
+    "railway",
+    "ticket",
+    "booking",
+    "MERN",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
