@@ -8,16 +8,17 @@ const {
   getAllTickets
 } = require('../controllers/ticketController');
 const { protect, admin } = require('../middleware/auth');
+const { bookingLimiter } = require('../middleware/rateLimiter');
 
 router.route('/')
   .get(protect, getUserTickets)
-  .post(protect, bookTicket);
+  .post(protect, bookingLimiter, bookTicket);
 
 router.get('/all', protect, admin, getAllTickets);
 
 router.route('/:id')
   .get(protect, getTicket);
 
-router.put('/:id/cancel', protect, cancelTicket);
+router.put('/:id/cancel', protect, bookingLimiter, cancelTicket);
 
 module.exports = router;
