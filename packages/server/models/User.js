@@ -27,7 +27,14 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    trim: true
+    trim: true,
+    validate: {
+      validator: function (v) {
+        if (!v) return true; // phone is optional
+        return /^\+[1-9]\d{1,14}$/.test(v); // E.164 format
+      },
+      message: 'Phone must be in E.164 format (e.g., +14155550123)'
+    }
   },
   createdAt: {
     type: Date,

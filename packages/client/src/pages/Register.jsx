@@ -16,24 +16,27 @@ const COUNTRY_OPTIONS = [
   { code: '+44', label: 'United Kingdom (+44)', region: 'GB' },
 ];
 
-const registerSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
-  countryCode: z.enum(['+1', '+91', '+92', '+970', '+44'], {
-    message: 'Select a valid country',
-  }),
-  phone: z
-    .string()
-    .trim()
-    .min(1, 'Phone number is required')
-    .refine((val, ctx) => {
-      const opt = COUNTRY_OPTIONS.find((c) => c.code === ctx.parent.countryCode);
-      if (!opt) return false;
-      const digitsOnly = val.replace(/\D/g, '');
-      return isValidPhoneNumber(digitsOnly, opt.region);
-    }, 'Invalid phone number for selected country'),
-});
+const registerSchema = z
+  .object({
+    name: z.string().min(1, 'Name is required'),
+    email: z.string().email('Invalid email address'),
+    password: z.string().min(6, 'Password must be at least 6 characters long'),
+    countryCode: z.enum(['+1', '+91', '+92', '+970', '+44'], {
+      message: 'Select a valid country',
+    }),
+    phone: z.string().trim().min(1, 'Phone number is required').refine((val) => /^\d+$/.test(val), 'Phone must contain only digits'),
+  })
+  .superRefine((data, ctx) => {
+    const opt = COUNTRY_OPTIONS.find((c) => c.code === data.countryCode);
+    if (!opt) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Select a valid country', path: ['countryCode'] });
+      return;
+    }
+    const digitsOnly = (data.phone || '').replace(/\D/g, '');
+    if (!isValidPhoneNumber(digitsOnly, opt.region)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid phone number for selected country', path: ['phone'] });
+    }
+  });
 
 const Register = () => {
   const [formData, setFormData] = useState({

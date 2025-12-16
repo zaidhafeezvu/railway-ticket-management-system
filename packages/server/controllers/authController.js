@@ -15,18 +15,23 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
+    // Normalize inputs
+    const normalizedEmail = (email || '').toLowerCase().trim();
+    const normalizedName = (name || '').trim();
+    const normalizedPhone = (phone || '').trim();
+
     // Check if user exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
 
     // Create user
     const user = await User.create({
-      name,
-      email,
+      name: normalizedName,
+      email: normalizedEmail,
       password,
-      phone
+      phone: normalizedPhone
     });
 
     if (user) {
@@ -52,9 +57,10 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = (email || '').toLowerCase().trim();
 
     // Check for user
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
     
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
